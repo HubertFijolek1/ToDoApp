@@ -57,6 +57,9 @@ class TodoList:
     def view_tasks_by_priority(self, priority):
         return [task for task in self.tasks if task.priority == priority]
 
+    def view_tasks_by_tag(self, tag):
+        return [task for task in self.tasks if tag in task.tags]
+
     def reorder_tasks(self):
         priority_map = {"High": 1, "Medium": 2, "Low": 3}
         self.tasks.sort(key=lambda task: (task.completed, priority_map.get(task.priority, 2)))
