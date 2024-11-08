@@ -35,3 +35,7 @@ class TodoList:
     def delete_task(self, task_index):
         if 0 <= task_index < len(self.tasks):
             del self.tasks[task_index]
+
+    def view_tasks(self):
+        for task in self.tasks:
+            print(task)
