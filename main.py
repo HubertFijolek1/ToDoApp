@@ -1,4 +1,5 @@
 from datetime import timedelta, datetime
+import csv
 
 class Task:
     def __init__(self, title, description, due_date, category="General", priority="Medium", tags=None, recurring_days=None):
@@ -73,3 +74,11 @@ class TodoList:
                 if due_date - today <= timedelta(days=days_before_due):
                     reminders.append(task)
         return reminders
+
+    def export_to_csv(self, filename="tasks.csv"):
+        with open(filename, mode="w", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow(["Title", "Description", "Due Date", "Category", "Priority", "Status", "Tags", "Recurring Days"])
+            for task in self.tasks:
+                writer.writerow([task.title, task.description, task.due_date, task.category, task.priority, "Completed" if task.completed else "Pending", ", ".join(task.tags), task.recurring_days])
+
