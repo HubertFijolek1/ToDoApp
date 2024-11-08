@@ -164,6 +164,13 @@ def main():
             for i, task in enumerate(tasks):
                 print(f"{i}. {task}")
 
+        elif choice == '6':
+            days = int(input("Enter number of days before due date for reminders: "))
+            reminders = todo_list.set_reminders(days)
+            print("\nUpcoming Reminders:")
+            for task in reminders:
+                print(task)
+
         else:
             print("Invalid choice, please try again.")
 
