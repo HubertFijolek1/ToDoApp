@@ -1,0 +1,4 @@
+*.pyc
+__pycache__/
+tasks.csv
+tasks.pdf
