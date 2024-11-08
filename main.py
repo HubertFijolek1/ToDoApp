@@ -2,7 +2,6 @@ from datetime import timedelta, datetime
 import csv
 from fpdf import FPDF
 
-
 class Task:
     def __init__(self, title, description, due_date, category="General", priority="Medium", tags=None, recurring_days=None):
         self.title = title
@@ -19,6 +18,16 @@ class Task:
         if self.recurring_days:
             self.due_date += timedelta(days=self.recurring_days)
             self.completed = False
+
+    def __str__(self):
+        return (f"Title: {self.title}\n"
+                f"Description: {self.description}\n"
+                f"Due Date: {self.due_date.strftime('%Y-%m-%d')}\n"
+                f"Category: {self.category}\n"
+                f"Priority: {self.priority}\n"
+                f"Status: {'Completed' if self.completed else 'Pending'}\n"
+                f"Tags: {', '.join(self.tags)}\n"
+                f"Recurring Every: {self.recurring_days} Days" if self.recurring_days else "")
 
 class TodoList:
     def __init__(self):
@@ -113,6 +122,24 @@ class TodoList:
             "Pending Tasks": pending_tasks
         }
 
+    def get_valid_date(prompt):
+        while True:
+            date_str = input(prompt)
+            try:
+                due_date = datetime.strptime(date_str, "%Y-%m-%d")
+                return due_date
+            except ValueError:
+                print("Invalid date format! Please enter in YYYY-MM-DD format.")
+
+    def get_valid_priority(prompt):
+        priorities = ["High", "Medium", "Low"]
+        while True:
+            priority = input(prompt).capitalize()
+            if priority in priorities:
+                return priority
+            else:
+                print(f"Invalid priority! Choose from {', '.join(priorities)}.")
+
 def main():
     todo_list = TodoList()
 
@@ -131,12 +158,12 @@ def main():
 
         choice = input("Enter your choice: ")
 
-        if choice == '1':
+        elif choice == '1':
             title = input("Enter title: ")
             description = input("Enter description: ")
-            due_date = input("Enter due date (YYYY-MM-DD): ")
+            due_date = get_valid_date("Enter due date (YYYY-MM-DD): ")
             category = input("Enter category: ")
-            priority = input("Enter priority (High, Medium, Low): ")
+            priority = get_valid_priority("Enter priority (High, Medium, Low): ")
             todo_list.add_task(title, description, due_date, category, priority)
             print("Task added successfully.")
 
