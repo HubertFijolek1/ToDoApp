@@ -5,3 +5,7 @@ class Task:
         self.due_date = due_date
         self.category = category
         self.priority = priority
+        self.completed = False  # Added completion status
+
+    def mark_completed(self):
+        self.completed = True
