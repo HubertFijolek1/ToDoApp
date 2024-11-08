@@ -43,3 +43,6 @@ class TodoList:
             return [task for task in self.tasks if not task.completed]
         else:
             return self.tasks
+
+    def view_tasks_by_category(self, category):
+        return [task for task in self.tasks if task.category == category]
