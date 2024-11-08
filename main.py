@@ -1,13 +1,14 @@
 from datetime import timedelta
 
 class Task:
-    def __init__(self, title, description, due_date, category="General", priority="Medium", recurring_days=None):
+    def __init__(self, title, description, due_date, category="General", priority="Medium", tags=None, recurring_days=None):
         self.title = title
         self.description = description
         self.due_date = due_date
         self.category = category
         self.priority = priority
         self.completed = False
+        self.tags = tags if tags else []
         self.recurring_days = recurring_days
 
     def mark_completed(self):
