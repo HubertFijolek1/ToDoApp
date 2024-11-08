@@ -46,3 +46,6 @@ class TodoList:
 
     def view_tasks_by_category(self, category):
         return [task for task in self.tasks if task.category == category]
+
+    def view_tasks_by_priority(self, priority):
+        return [task for task in self.tasks if task.priority == priority]
