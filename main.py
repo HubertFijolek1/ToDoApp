@@ -112,6 +112,15 @@ class TodoList:
             pdf.cell(200, 10, ln=True)
         pdf.output(filename)
 
+    def display_tasks(tasks):
+        if not tasks:
+            print("No tasks to display.")
+            return
+        for idx, task in enumerate(tasks):
+            print(f"\nTask {idx + 1}:")
+            print(task)
+            print("-" * 40)
+
     def task_summary(self):
         total_tasks = len(self.tasks)
         completed_tasks = len([task for task in self.tasks if task.completed])
