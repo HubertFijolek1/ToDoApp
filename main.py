@@ -154,6 +154,16 @@ def main():
             print("Exiting application.")
             break
 
+        elif choice == '5':
+            status = input("Filter by status (completed, pending, leave blank for all): ")
+            category = input("Filter by category (leave blank for all): ")
+            priority = input("Filter by priority (High, Medium, Low, leave blank for all): ")
+            tag = input("Filter by tag (leave blank for all): ")
+            tasks = todo_list.view_tasks(status, category, priority, tag)
+            print("\nTasks:")
+            for i, task in enumerate(tasks):
+                print(f"{i}. {task}")
+
         else:
             print("Invalid choice, please try again.")
 
