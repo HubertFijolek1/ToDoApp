@@ -20,14 +20,16 @@ class Task:
             self.completed = False
 
     def __str__(self):
-        return (f"Title: {self.title}\n"
-                f"Description: {self.description}\n"
-                f"Due Date: {self.due_date.strftime('%Y-%m-%d')}\n"
-                f"Category: {self.category}\n"
-                f"Priority: {self.priority}\n"
-                f"Status: {'Completed' if self.completed else 'Pending'}\n"
-                f"Tags: {', '.join(self.tags)}\n"
-                f"Recurring Every: {self.recurring_days} Days" if self.recurring_days else "")
+        base_str = (f"Title: {self.title}\n"
+                    f"Description: {self.description}\n"
+                    f"Due Date: {self.due_date.strftime('%Y-%m-%d')}\n"
+                    f"Category: {self.category}\n"
+                    f"Priority: {self.priority}\n"
+                    f"Status: {'Completed' if self.completed else 'Pending'}\n"
+                    f"Tags: {', '.join(self.tags)}\n")
+        if self.recurring_days:
+            base_str += f"Recurring Every: {self.recurring_days} Days"
+        return base_str
 
 class TodoList:
     def __init__(self):
@@ -91,7 +93,7 @@ class TodoList:
             writer = csv.writer(file)
             writer.writerow(["Title", "Description", "Due Date", "Category", "Priority", "Status", "Tags", "Recurring Days"])
             for task in self.tasks:
-                writer.writerow([task.title, task.description, task.due_date, task.category, task.priority, "Completed" if task.completed else "Pending", ", ".join(task.tags), task.recurring_days])
+                writer.writerow([task.title, task.description, task.due_date.strftime("%Y-%m-%d"), task.category, task.priority, "Completed" if task.completed else "Pending", ", ".join(task.tags), task.recurring_days])
 
     def export_to_pdf(self, filename="tasks.pdf"):
         pdf = FPDF()
@@ -102,7 +104,7 @@ class TodoList:
         for task in self.tasks:
             pdf.cell(200, 10, txt=f"Title: {task.title}", ln=True)
             pdf.cell(200, 10, txt=f"Description: {task.description}", ln=True)
-            pdf.cell(200, 10, txt=f"Due Date: {task.due_date}", ln=True)
+            pdf.cell(200, 10, txt=f"Due Date: {task.due_date.strftime('%Y-%m-%d')}", ln=True)
             pdf.cell(200, 10, txt=f"Category: {task.category}", ln=True)
             pdf.cell(200, 10, txt=f"Priority: {task.priority}", ln=True)
             pdf.cell(200, 10, txt=f"Tags: {', '.join(task.tags)}", ln=True)
@@ -111,15 +113,6 @@ class TodoList:
                 pdf.cell(200, 10, txt=f"Recurring Every: {task.recurring_days} Days", ln=True)
             pdf.cell(200, 10, ln=True)
         pdf.output(filename)
-
-    def display_tasks(tasks):
-        if not tasks:
-            print("No tasks to display.")
-            return
-        for idx, task in enumerate(tasks):
-            print(f"\nTask {idx + 1}:")
-            print(task)
-            print("-" * 40)
 
     def task_summary(self):
         total_tasks = len(self.tasks)
@@ -131,23 +124,47 @@ class TodoList:
             "Pending Tasks": pending_tasks
         }
 
-    def get_valid_date(prompt):
-        while True:
-            date_str = input(prompt)
-            try:
-                due_date = datetime.strptime(date_str, "%Y-%m-%d")
-                return due_date
-            except ValueError:
-                print("Invalid date format! Please enter in YYYY-MM-DD format.")
+def display_tasks(tasks):
+    if not tasks:
+        print("No tasks to display.")
+        return
+    for idx, task in enumerate(tasks):
+        print(f"\nTask {idx + 1}:")
+        print(task)
+        print("-" * 40)
 
-    def get_valid_priority(prompt):
-        priorities = ["High", "Medium", "Low"]
-        while True:
-            priority = input(prompt).capitalize()
-            if priority in priorities:
-                return priority
-            else:
-                print(f"Invalid priority! Choose from {', '.join(priorities)}.")
+def get_valid_date(prompt):
+    while True:
+        date_str = input(prompt)
+        try:
+            due_date = datetime.strptime(date_str, "%Y-%m-%d")
+            return due_date.strftime("%Y-%m-%d")  # Return as string to maintain consistency
+        except ValueError:
+            print("Invalid date format! Please enter in YYYY-MM-DD format.")
+
+def get_valid_priority(prompt):
+    priorities = ["High", "Medium", "Low"]
+    while True:
+        priority = input(prompt).capitalize()
+        if priority in priorities:
+            return priority
+        else:
+            print(f"Invalid priority! Choose from {', '.join(priorities)}.")
+
+def filter_tasks(todo_list, status=None, category=None, priority=None, tag=None):
+    filtered = todo_list.tasks
+    if status:
+        if status.lower() == "completed":
+            filtered = [task for task in filtered if task.completed]
+        elif status.lower() == "pending":
+            filtered = [task for task in filtered if not task.completed]
+    if category:
+        filtered = [task for task in filtered if task.category.lower() == category.lower()]
+    if priority:
+        filtered = [task for task in filtered if task.priority.lower() == priority.lower()]
+    if tag:
+        filtered = [task for task in filtered if tag.lower() in [t.lower() for t in task.tags]]
+    return filtered
 
 def main():
     todo_list = TodoList()
@@ -167,7 +184,7 @@ def main():
 
         choice = input("Enter your choice: ")
 
-        elif choice == '1':
+        if choice == '1':
             title = input("Enter title: ")
             description = input("Enter description: ")
             due_date = get_valid_date("Enter due date (YYYY-MM-DD): ")
@@ -178,24 +195,41 @@ def main():
 
         elif choice == '2':
             try:
-                task_index = int(input("Enter task index to edit: "))
+                task_index = int(input("Enter task index to edit: ")) - 1
+                if not (0 <= task_index < len(todo_list.tasks)):
+                    print("Invalid task index!")
+                    continue
                 title = input("Enter new title (leave blank to skip): ")
                 description = input("Enter new description (leave blank to skip): ")
-                due_date = input("Enter new due date (YYYY-MM-DD, leave blank to skip): ")
+                due_date_input = input("Enter new due date (YYYY-MM-DD, leave blank to skip): ")
+                due_date = due_date_input if due_date_input else None
+                if due_date:
+                    try:
+                        due_date = datetime.strptime(due_date, "%Y-%m-%d").strftime("%Y-%m-%d")
+                    except ValueError:
+                        print("Invalid date format! Skipping due date update.")
+                        due_date = None
                 category = input("Enter new category (leave blank to skip): ")
-                priority = input("Enter new priority (High, Medium, Low, leave blank to skip): ")
-                updates = {"title": title, "description": description, "due_date": due_date, "category": category,
-                           "priority": priority}
-                todo_list.edit_task(task_index, **{k: v for k, v in updates.items() if v})
+                priority_input = input("Enter new priority (High, Medium, Low, leave blank to skip): ")
+                priority = priority_input.capitalize() if priority_input else None
+                if priority and priority not in ["High", "Medium", "Low"]:
+                    print("Invalid priority! Skipping priority update.")
+                    priority = None
+                updates = {"title": title, "description": description, "due_date": due_date, "category": category, "priority": priority}
+                # Remove None or empty updates
+                updates = {k: v for k, v in updates.items() if v}
+                todo_list.edit_task(task_index, **updates)
                 print("Task updated successfully.")
             except ValueError:
                 print("Invalid input! Please enter a valid index.")
 
-
         elif choice == '3':
-            task_index = int(input("Enter task index to delete: "))
-            todo_list.delete_task(task_index)
-            print("Task deleted.")
+            try:
+                task_index = int(input("Enter task index to delete: ")) - 1
+                todo_list.delete_task(task_index)
+                print("Task deleted.")
+            except (ValueError, IndexError):
+                print("Invalid task index!")
 
         elif choice == '4':
             tasks = todo_list.view_tasks()
@@ -207,20 +241,21 @@ def main():
             priority = input("Filter by priority (High, Medium, Low, leave blank for all): ")
             tag = input("Filter by tag (leave blank for all): ")
 
-            tasks = todo_list.filter_tasks(status=status, category=category, priority=priority, tag=tag)
+            tasks = filter_tasks(todo_list, status=status, category=category, priority=priority, tag=tag)
             display_tasks(tasks)
 
-
         elif choice == '6':
-            days = int(input("Enter number of days before due date for reminders: "))
-            reminders = todo_list.set_reminders(days)
-            print("\nUpcoming Reminders:")
-            for task in reminders:
-                print(task)
+            try:
+                days = int(input("Enter number of days before due date for reminders: "))
+                reminders = todo_list.set_reminders(days)
+                print("\nUpcoming Reminders:")
+                display_tasks(reminders)
+            except ValueError:
+                print("Please enter a valid number of days.")
 
         elif choice == '7':
             todo_list.reorder_tasks()
-            print("Tasks reordered by completion status, priority, and due date.")
+            print("Tasks reordered by completion status and priority.")
 
         elif choice == '8':
             summary = todo_list.task_summary()
