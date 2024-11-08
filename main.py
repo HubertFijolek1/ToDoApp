@@ -112,3 +112,50 @@ class TodoList:
             "Completed Tasks": completed_tasks,
             "Pending Tasks": pending_tasks
         }
+
+def main():
+    todo_list = TodoList()
+
+    while True:
+        print("\nTodo List Application")
+        print("1. Add Task")
+        print("2. Edit Task")
+        print("3. Delete Task")
+        print("4. Exit")
+
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            title = input("Enter title: ")
+            description = input("Enter description: ")
+            due_date = input("Enter due date (YYYY-MM-DD): ")
+            category = input("Enter category: ")
+            priority = input("Enter priority (High, Medium, Low): ")
+            todo_list.add_task(title, description, due_date, category, priority)
+            print("Task added successfully.")
+
+        elif choice == '2':
+            task_index = int(input("Enter task index to edit: "))
+            title = input("Enter new title (leave blank to skip): ")
+            description = input("Enter new description (leave blank to skip): ")
+            due_date = input("Enter new due date (YYYY-MM-DD, leave blank to skip): ")
+            category = input("Enter new category (leave blank to skip): ")
+            priority = input("Enter new priority (High, Medium, Low, leave blank to skip): ")
+            updates = {"title": title, "description": description, "due_date": due_date, "category": category, "priority": priority}
+            todo_list.edit_task(task_index, **{k: v for k, v in updates.items() if v})
+            print("Task updated successfully.")
+
+        elif choice == '3':
+            task_index = int(input("Enter task index to delete: "))
+            todo_list.delete_task(task_index)
+            print("Task deleted.")
+
+        elif choice == '4':
+            print("Exiting application.")
+            break
+
+        else:
+            print("Invalid choice, please try again.")
+
+if __name__ == "__main__":
+    main()
