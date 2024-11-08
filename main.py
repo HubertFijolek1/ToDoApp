@@ -36,6 +36,10 @@ class TodoList:
         if 0 <= task_index < len(self.tasks):
             del self.tasks[task_index]
 
-    def view_tasks(self):
-        for task in self.tasks:
-            print(task)
+    def view_tasks(self, status=None):
+        if status == "completed":
+            return [task for task in self.tasks if task.completed]
+        elif status == "pending":
+            return [task for task in self.tasks if not task.completed]
+        else:
+            return self.tasks
