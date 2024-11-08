@@ -2,8 +2,6 @@
 
 > A Python-based command-line Todo List application to help you manage your tasks efficiently.
 
-![Todo List Banner](https://via.placeholder.com/1000x300.png?text=Todo+List+Application+Banner)
-
 ## Table of Contents 📚
 
 - [Features](#features-✨)
