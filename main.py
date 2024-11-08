@@ -1,5 +1,7 @@
 from datetime import timedelta, datetime
 import csv
+from fpdf import FPDF
+
 
 class Task:
     def __init__(self, title, description, due_date, category="General", priority="Medium", tags=None, recurring_days=None):
@@ -82,3 +84,21 @@ class TodoList:
             for task in self.tasks:
                 writer.writerow([task.title, task.description, task.due_date, task.category, task.priority, "Completed" if task.completed else "Pending", ", ".join(task.tags), task.recurring_days])
 
+    def export_to_pdf(self, filename="tasks.pdf"):
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        pdf.cell(200, 10, txt="To-Do List", ln=True, align="C")
+
+        for task in self.tasks:
+            pdf.cell(200, 10, txt=f"Title: {task.title}", ln=True)
+            pdf.cell(200, 10, txt=f"Description: {task.description}", ln=True)
+            pdf.cell(200, 10, txt=f"Due Date: {task.due_date}", ln=True)
+            pdf.cell(200, 10, txt=f"Category: {task.category}", ln=True)
+            pdf.cell(200, 10, txt=f"Priority: {task.priority}", ln=True)
+            pdf.cell(200, 10, txt=f"Tags: {', '.join(task.tags)}", ln=True)
+            pdf.cell(200, 10, txt=f"Status: {'Completed' if task.completed else 'Pending'}", ln=True)
+            if task.recurring_days:
+                pdf.cell(200, 10, txt=f"Recurring Every: {task.recurring_days} Days", ln=True)
+            pdf.cell(200, 10, ln=True)
+        pdf.output(filename)
