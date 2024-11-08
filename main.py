@@ -121,7 +121,13 @@ def main():
         print("1. Add Task")
         print("2. Edit Task")
         print("3. Delete Task")
-        print("4. Exit")
+        print("4. View Tasks")
+        print("5. Filter Tasks")
+        print("6. Set Reminders")
+        print("7. Reorder Tasks")
+        print("8. Task Summary")
+        print("9. Export Tasks")
+        print("10. Exit")
 
         choice = input("Enter your choice: ")
 
@@ -156,14 +162,15 @@ def main():
             print("Task deleted.")
 
         elif choice == '4':
-            print("Exiting application.")
-            break
+            tasks = todo_list.view_tasks()
+            display_tasks(tasks)
 
         elif choice == '5':
             status = input("Filter by status (completed, pending, leave blank for all): ")
             category = input("Filter by category (leave blank for all): ")
             priority = input("Filter by priority (High, Medium, Low, leave blank for all): ")
             tag = input("Filter by tag (leave blank for all): ")
+
             tasks = todo_list.view_tasks(status, category, priority, tag)
             print("\nTasks:")
             for i, task in enumerate(tasks):
