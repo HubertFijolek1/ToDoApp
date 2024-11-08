@@ -171,10 +171,9 @@ def main():
             priority = input("Filter by priority (High, Medium, Low, leave blank for all): ")
             tag = input("Filter by tag (leave blank for all): ")
 
-            tasks = todo_list.view_tasks(status, category, priority, tag)
-            print("\nTasks:")
-            for i, task in enumerate(tasks):
-                print(f"{i}. {task}")
+            tasks = todo_list.filter_tasks(status=status, category=category, priority=priority, tag=tag)
+            display_tasks(tasks)
+
 
         elif choice == '6':
             days = int(input("Enter number of days before due date for reminders: "))
