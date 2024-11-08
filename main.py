@@ -135,15 +135,20 @@ def main():
             print("Task added successfully.")
 
         elif choice == '2':
-            task_index = int(input("Enter task index to edit: "))
-            title = input("Enter new title (leave blank to skip): ")
-            description = input("Enter new description (leave blank to skip): ")
-            due_date = input("Enter new due date (YYYY-MM-DD, leave blank to skip): ")
-            category = input("Enter new category (leave blank to skip): ")
-            priority = input("Enter new priority (High, Medium, Low, leave blank to skip): ")
-            updates = {"title": title, "description": description, "due_date": due_date, "category": category, "priority": priority}
-            todo_list.edit_task(task_index, **{k: v for k, v in updates.items() if v})
-            print("Task updated successfully.")
+            try:
+                task_index = int(input("Enter task index to edit: "))
+                title = input("Enter new title (leave blank to skip): ")
+                description = input("Enter new description (leave blank to skip): ")
+                due_date = input("Enter new due date (YYYY-MM-DD, leave blank to skip): ")
+                category = input("Enter new category (leave blank to skip): ")
+                priority = input("Enter new priority (High, Medium, Low, leave blank to skip): ")
+                updates = {"title": title, "description": description, "due_date": due_date, "category": category,
+                           "priority": priority}
+                todo_list.edit_task(task_index, **{k: v for k, v in updates.items() if v})
+                print("Task updated successfully.")
+            except ValueError:
+                print("Invalid input! Please enter a valid index.")
+
 
         elif choice == '3':
             task_index = int(input("Enter task index to delete: "))
@@ -174,6 +179,12 @@ def main():
         elif choice == '7':
             todo_list.reorder_tasks()
             print("Tasks reordered by completion status, priority, and due date.")
+
+        elif choice == '8':
+            summary = todo_list.task_summary()
+            print("\nTask Summary:")
+            for key, value in summary.items():
+                print(f"{key}: {value}")
 
         else:
             print("Invalid choice, please try again.")
