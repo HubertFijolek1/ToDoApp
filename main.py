@@ -31,3 +31,7 @@ class TodoList:
                 task.category = category
             if priority:
                 task.priority = priority
+
+    def delete_task(self, task_index):
+        if 0 <= task_index < len(self.tasks):
+            del self.tasks[task_index]
