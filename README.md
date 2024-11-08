@@ -2,19 +2,6 @@
 
 > A Python-based command-line Todo List application to help you manage your tasks efficiently.
 
-## Table of Contents 📚
-
-- [Features](#features-✨)
-- [Project Structure](#project-structure-📁)
-- [Installation](#installation-🛠️)
-- [Usage](#usage-💻)
-- [Exporting Tasks](#exporting-tasks-📤)
-- [Dependencies](#dependencies-📦)
-- [Contributing](#contributing-🤝)
-- [License](#license-📄)
-- [Acknowledgements](#acknowledgements-🙌)
-- [Contact](#contact-📬)
-
 ## Features ✨
 
 - **Add Task**: Create new tasks with details like title, description, due date, category, priority, tags, and recurring days.
