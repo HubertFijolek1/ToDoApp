@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 class Task:
     def __init__(self, title, description, due_date, category="General", priority="Medium", tags=None, recurring_days=None):
@@ -63,3 +63,13 @@ class TodoList:
     def reorder_tasks(self):
         priority_map = {"High": 1, "Medium": 2, "Low": 3}
         self.tasks.sort(key=lambda task: (task.completed, priority_map.get(task.priority, 2)))
+
+    def set_reminders(self, days_before_due=1):
+        today = datetime.now()
+        reminders = []
+        for task in self.tasks:
+            if not task.completed:
+                due_date = datetime.strptime(task.due_date, "%Y-%m-%d")
+                if due_date - today <= timedelta(days=days_before_due):
+                    reminders.append(task)
+        return reminders
