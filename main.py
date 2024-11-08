@@ -192,6 +192,24 @@ def main():
             for key, value in summary.items():
                 print(f"{key}: {value}")
 
+        elif choice == '9':
+            # Export Tasks
+            export_choice = input("Export as (1) CSV or (2) PDF: ")
+            if export_choice == '1':
+                filename = input("Enter CSV filename (default 'tasks.csv'): ") or "tasks.csv"
+                todo_list.export_to_csv(filename)
+                print(f"Tasks exported to {filename}")
+            elif export_choice == '2':
+                filename = input("Enter PDF filename (default 'tasks.pdf'): ") or "tasks.pdf"
+                todo_list.export_to_pdf(filename)
+                print(f"Tasks exported to {filename}")
+            else:
+                print("Invalid export option.")
+
+        elif choice == '10':
+            print("Exiting application.")
+            break
+
         else:
             print("Invalid choice, please try again.")
 
