@@ -102,3 +102,13 @@ class TodoList:
                 pdf.cell(200, 10, txt=f"Recurring Every: {task.recurring_days} Days", ln=True)
             pdf.cell(200, 10, ln=True)
         pdf.output(filename)
+
+    def task_summary(self):
+        total_tasks = len(self.tasks)
+        completed_tasks = len([task for task in self.tasks if task.completed])
+        pending_tasks = total_tasks - completed_tasks
+        return {
+            "Total Tasks": total_tasks,
+            "Completed Tasks": completed_tasks,
+            "Pending Tasks": pending_tasks
+        }
