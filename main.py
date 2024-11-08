@@ -171,6 +171,10 @@ def main():
             for task in reminders:
                 print(task)
 
+        elif choice == '7':
+            todo_list.reorder_tasks()
+            print("Tasks reordered by completion status, priority, and due date.")
+
         else:
             print("Invalid choice, please try again.")
 
