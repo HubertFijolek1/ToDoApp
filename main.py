@@ -1,247 +1,6 @@
-from datetime import timedelta, datetime
-import csv
-import json
-from fpdf import FPDF
-
-class Task:
-    def __init__(self, title, description, due_date, category="General", priority="Medium", tags=None, recurring_days=None):
-        self.title = title
-        self.description = description
-        self.due_date = due_date  # Stored as string in 'YYYY-MM-DD' format
-        self.category = category
-        self.priority = priority
-        self.completed = False
-        self.tags = tags if tags else []
-        self.recurring_days = recurring_days
-
-    def mark_completed(self):
-        self.completed = True
-        if self.recurring_days:
-            try:
-                due_date_obj = datetime.strptime(self.due_date, "%Y-%m-%d")
-                due_date_obj += timedelta(days=self.recurring_days)
-                self.due_date = due_date_obj.strftime("%Y-%m-%d")
-                self.completed = False  # Reset completion for recurring tasks
-            except ValueError:
-                print(f"Error updating due date for task '{self.title}'. Invalid date format.")
-
-    def __str__(self):
-        base_str = (f"Title: {self.title}\n"
-                    f"Description: {self.description}\n"
-                    f"Due Date: {self.due_date}\n"
-                    f"Category: {self.category}\n"
-                    f"Priority: {self.priority}\n"
-                    f"Status: {'Completed' if self.completed else 'Pending'}\n"
-                    f"Tags: {', '.join(self.tags)}\n")
-        if self.recurring_days:
-            base_str += f"Recurring Every: {self.recurring_days} Days"
-        return base_str
-
-class TodoList:
-    def __init__(self, storage_file="tasks.json"):
-        self.tasks = []
-        self.storage_file = storage_file
-        self.load_tasks()
-
-    def load_tasks(self):
-        try:
-            with open(self.storage_file, "r") as file:
-                tasks_data = json.load(file)
-                for task_data in tasks_data:
-                    task = Task(
-                        title=task_data["title"],
-                        description=task_data["description"],
-                        due_date=task_data["due_date"],
-                        category=task_data["category"],
-                        priority=task_data["priority"],
-                        tags=task_data.get("tags", []),
-                        recurring_days=task_data.get("recurring_days")
-                    )
-                    task.completed = task_data["completed"]
-                    self.tasks.append(task)
-        except FileNotFoundError:
-            # No existing tasks to load
-            pass
-        except json.JSONDecodeError:
-            print("Error: Corrupted tasks.json file. Starting with an empty task list.")
-            self.tasks = []
-
-    def save_tasks(self):
-        with open(self.storage_file, "w") as file:
-            tasks_data = [{
-                "title": task.title,
-                "description": task.description,
-                "due_date": task.due_date,
-                "category": task.category,
-                "priority": task.priority,
-                "completed": task.completed,
-                "tags": task.tags,
-                "recurring_days": task.recurring_days
-            } for task in self.tasks]
-            json.dump(tasks_data, file, indent=4)
-
-    def add_task(self, title, description, due_date, category="General", priority="Medium"):
-        task = Task(title, description, due_date, category, priority)
-        self.tasks.append(task)
-        self.save_tasks()
-
-    def edit_task(self, task_index, title=None, description=None, due_date=None, category=None, priority=None):
-        if 0 <= task_index < len(self.tasks):
-            task = self.tasks[task_index]
-            if title:
-                task.title = title
-            if description:
-                task.description = description
-            if due_date:
-                task.due_date = due_date
-            if category:
-                task.category = category
-            if priority:
-                task.priority = priority
-            self.save_tasks()
-        else:
-            print("Error: Task index out of range.")
-
-    def delete_task(self, task_index):
-        if 0 <= task_index < len(self.tasks):
-            del self.tasks[task_index]
-            self.save_tasks()
-        else:
-            print("Error: Task index out of range.")
-
-    def view_tasks(self, status=None):
-        if status == "completed":
-            return [task for task in self.tasks if task.completed]
-        elif status == "pending":
-            return [task for task in self.tasks if not task.completed]
-        else:
-            return self.tasks
-
-    def view_tasks_by_category(self, category):
-        return [task for task in self.tasks if task.category.lower() == category.lower()]
-
-    def view_tasks_by_priority(self, priority):
-        return [task for task in self.tasks if task.priority.lower() == priority.lower()]
-
-    def view_tasks_by_tag(self, tag):
-        return [task for task in self.tasks if tag.lower() in [t.lower() for t in task.tags]]
-
-    def reorder_tasks(self):
-        priority_map = {"High": 1, "Medium": 2, "Low": 3}
-        self.tasks.sort(key=lambda task: (task.completed, priority_map.get(task.priority, 2)))
-
-    def set_reminders(self, days_before_due=1):
-        today = datetime.now()
-        reminders = []
-        for task in self.tasks:
-            if not task.completed:
-                try:
-                    due_date = datetime.strptime(task.due_date, "%Y-%m-%d")
-                    if due_date - today <= timedelta(days=days_before_due):
-                        reminders.append(task)
-                except ValueError:
-                    print(f"Invalid due date format for task '{task.title}'. Skipping reminder.")
-        return reminders
-
-    def export_to_csv(self, filename="tasks.csv"):
-        try:
-            with open(filename, mode="w", newline="", encoding='utf-8') as file:
-                writer = csv.writer(file)
-                writer.writerow(["Title", "Description", "Due Date", "Category", "Priority", "Status", "Tags", "Recurring Days"])
-                for task in self.tasks:
-                    writer.writerow([
-                        task.title,
-                        task.description,
-                        task.due_date,
-                        task.category,
-                        task.priority,
-                        "Completed" if task.completed else "Pending",
-                        ", ".join(task.tags),
-                        task.recurring_days if task.recurring_days else ""
-                    ])
-            print(f"Tasks successfully exported to '{filename}'.")
-        except Exception as e:
-            print(f"Error exporting to CSV: {e}")
-
-    def export_to_pdf(self, filename="tasks.pdf"):
-        try:
-            pdf = FPDF()
-            pdf.add_page()
-            pdf.set_font("Arial", 'B', 16)
-            pdf.cell(200, 10, txt="To-Do List", ln=True, align="C")
-            pdf.ln(10)  # Add a line break
-
-            pdf.set_font("Arial", size=12)
-            for idx, task in enumerate(self.tasks, start=1):
-                pdf.set_font("Arial", 'B', 12)
-                pdf.cell(0, 10, txt=f"Task {idx}: {task.title}", ln=True)
-                pdf.set_font("Arial", size=12)
-                pdf.multi_cell(0, 10, txt=f"Description: {task.description}")
-                pdf.cell(0, 10, txt=f"Due Date: {task.due_date}", ln=True)
-                pdf.cell(0, 10, txt=f"Category: {task.category}", ln=True)
-                pdf.cell(0, 10, txt=f"Priority: {task.priority}", ln=True)
-                pdf.cell(0, 10, txt=f"Tags: {', '.join(task.tags)}", ln=True)
-                pdf.cell(0, 10, txt=f"Status: {'Completed' if task.completed else 'Pending'}", ln=True)
-                if task.recurring_days:
-                    pdf.cell(0, 10, txt=f"Recurring Every: {task.recurring_days} Days", ln=True)
-                pdf.ln(5)  # Add space between tasks
-            pdf.output(filename)
-            print(f"Tasks successfully exported to '{filename}'.")
-        except Exception as e:
-            print(f"Error exporting to PDF: {e}")
-
-    def task_summary(self):
-        total_tasks = len(self.tasks)
-        completed_tasks = len([task for task in self.tasks if task.completed])
-        pending_tasks = total_tasks - completed_tasks
-        return {
-            "Total Tasks": total_tasks,
-            "Completed Tasks": completed_tasks,
-            "Pending Tasks": pending_tasks
-        }
-
-def display_tasks(tasks):
-    if not tasks:
-        print("No tasks to display.")
-        return
-    for idx, task in enumerate(tasks, start=1):
-        print(f"\nTask {idx}:")
-        print(task)
-        print("-" * 40)
-
-def get_valid_date(prompt):
-    while True:
-        date_str = input(prompt)
-        try:
-            # Validate the date format
-            datetime.strptime(date_str, "%Y-%m-%d")
-            return date_str  # Return as string to maintain consistency
-        except ValueError:
-            print("Invalid date format! Please enter in YYYY-MM-DD format.")
-
-def get_valid_priority(prompt):
-    priorities = ["High", "Medium", "Low"]
-    while True:
-        priority = input(prompt).capitalize()
-        if priority in priorities:
-            return priority
-        else:
-            print(f"Invalid priority! Choose from {', '.join(priorities)}.")
-
-def filter_tasks(todo_list, status=None, category=None, priority=None, tag=None):
-    filtered = todo_list.tasks
-    if status:
-        if status.lower() == "completed":
-            filtered = [task for task in filtered if task.completed]
-        elif status.lower() == "pending":
-            filtered = [task for task in filtered if not task.completed]
-    if category:
-        filtered = [task for task in filtered if task.category.lower() == category.lower()]
-    if priority:
-        filtered = [task for task in filtered if task.priority.lower() == priority.lower()]
-    if tag:
-        filtered = [task for task in filtered if tag.lower() in [t.lower() for t in task.tags]]
-    return filtered
+from todo_list import TodoList
+from utils import get_valid_date, get_valid_priority, display_tasks, filter_tasks
+from exports import export_to_csv, export_to_pdf
 
 def main():
     todo_list = TodoList()
@@ -259,7 +18,7 @@ def main():
         print("9. Export Tasks")
         print("10. Exit")
 
-        choice = input("Enter your choice: ")
+        choice = input("Enter your choice: ").strip()
 
         if choice == '1':
             # Add Task
@@ -284,7 +43,7 @@ def main():
         elif choice == '2':
             # Edit Task
             try:
-                task_index = int(input("Enter task index to edit: ")) - 1
+                task_index = int(input("Enter task index to edit: ").strip()) - 1
                 if not (0 <= task_index < len(todo_list.tasks)):
                     print("Invalid task index!")
                     continue
@@ -295,8 +54,10 @@ def main():
                 due_date = due_date_input if due_date_input else None
                 if due_date:
                     try:
-                        datetime.strptime(due_date, "%Y-%m-%d")
-                    except ValueError:
+                        get_valid_date = get_valid_date  # To ensure date is valid
+                        # The get_valid_date function already validates the date
+                        due_date = get_valid_date("Confirm new due date (YYYY-MM-DD): ") if due_date else None
+                    except:
                         print("Invalid date format! Skipping due date update.")
                         due_date = None
                 category = input("Enter new category: ").strip() or None
@@ -336,7 +97,7 @@ def main():
         elif choice == '3':
             # Delete Task
             try:
-                task_index = int(input("Enter task index to delete: ")) - 1
+                task_index = int(input("Enter task index to delete: ").strip()) - 1
                 if not (0 <= task_index < len(todo_list.tasks)):
                     print("Invalid task index!")
                     continue
@@ -401,10 +162,10 @@ def main():
             export_choice = input("Choose export format (1 or 2): ").strip()
             if export_choice == '1':
                 filename = input("Enter CSV filename (default 'tasks.csv'): ").strip() or "tasks.csv"
-                todo_list.export_to_csv(filename)
+                export_to_csv(todo_list.tasks, filename)
             elif export_choice == '2':
                 filename = input("Enter PDF filename (default 'tasks.pdf'): ").strip() or "tasks.pdf"
-                todo_list.export_to_pdf(filename)
+                export_to_pdf(todo_list.tasks, filename)
             else:
                 print("Invalid export option.")
 
