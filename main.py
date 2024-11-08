@@ -31,6 +31,7 @@ def main():
             tags = [tag.strip() for tag in tags_input.split(",")] if tags_input else []
             recurring_input = input("Enter recurring days (optional, press Enter to skip): ").strip()
             recurring_days = int(recurring_input) if recurring_input.isdigit() else None
+
             todo_list.add_task(title, description, due_date, category, priority)
             # Add tags and recurring_days if provided
             if tags:
@@ -54,9 +55,8 @@ def main():
                 due_date = due_date_input if due_date_input else None
                 if due_date:
                     try:
-                        get_valid_date = get_valid_date  # To ensure date is valid
-                        # The get_valid_date function already validates the date
-                        due_date = get_valid_date("Confirm new due date (YYYY-MM-DD): ") if due_date else None
+                        # Validate the new due date
+                        get_valid_date("Confirm new due date (YYYY-MM-DD): ")
                     except:
                         print("Invalid date format! Skipping due date update.")
                         due_date = None
